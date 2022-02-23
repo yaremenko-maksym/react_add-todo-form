@@ -13,6 +13,10 @@ interface GoodWithoutColor {
   colorId: number;
 }
 
+interface Good extends GoodWithoutColor {
+  color: Color | null;
+}
+
 const colors: Color[] = [
   { id: 1, name: 'red' },
   { id: 2, name: 'green' },
@@ -32,14 +36,33 @@ const goodsFromServer: GoodWithoutColor[] = [
   { id: 10, colorId: 1, name: 'Garlic' },
 ];
 
+const getColorById = (colorId: number) => {
+  return colors.find(color => color.id === colorId);
+};
+
+const goodsWithColors: Good[] = goodsFromServer.map(good => ({
+  ...good,
+  color: getColorById(good.colorId) || null,
+}));
+
+const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
+  <ul>
+    {goods.map(good => (
+      <li
+        key={good.id}
+        style={{ color: good.color?.name || 'black' }}
+      >
+        {good.name}
+      </li>
+    ))}
+  </ul>
+);
+
 const App: React.FC = () => {
   return (
     <div className="App">
       <h1>Add todo form</h1>
-
-      <p>
-        <span>Users: </span>
-      </p>
+      <GoodsList goods={goodsWithColors} />
     </div>
   );
 };

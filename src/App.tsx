@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
+import classnames from 'classnames';
+
 import './App.css';
 
 interface Color {
@@ -61,20 +63,35 @@ const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
 
 const App: React.FC = () => {
   const [newGoodName, setNewGoodName] = useState('');
+  const [hasNameError, setNameError] = useState(false);
+
   const [selectedColorId, setSelectedColorId] = useState(0);
+  const [hasColorIdError, setColorIdError] = useState(false);
+
   const [goods, setGoods] = useState(goodsWithColors);
+
+  const addGood = (name: string, colorId: number) => {
+    const newGood: Good = {
+      id: Date.now(),
+      name,
+      colorId,
+      color: getColorById(colorId),
+    };
+
+    setGoods(currentGoods => [...currentGoods, newGood]);
+  };
 
   const onFormSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    const newGood: Good = {
-      id: Date.now(),
-      name: newGoodName,
-      colorId: selectedColorId,
-      color: getColorById(selectedColorId),
-    };
+    setNameError(!newGoodName);
+    setColorIdError(!selectedColorId);
 
-    setGoods([...goods, newGood]);
+    if (newGoodName && selectedColorId) {
+      addGood(newGoodName, selectedColorId);
+      setNewGoodName('');
+      setSelectedColorId(0);
+    }
   };
 
   return (
@@ -86,14 +103,22 @@ const App: React.FC = () => {
       <form onSubmit={onFormSubmit}>
         <input
           type="text"
-          defaultValue={newGoodName}
           placeholder="Enter a good name"
-          onChange={event => setNewGoodName(event.target.value)}
+          className={hasNameError ? 'error' : ''}
+          value={newGoodName}
+          onChange={(event) => {
+            setNewGoodName(event.target.value);
+            setNameError(false);
+          }}
         />
 
         <select
+          className={classnames({ error: hasColorIdError })}
           value={selectedColorId}
-          onChange={event => setSelectedColorId(+event.target.value)}
+          onChange={(event) => {
+            setSelectedColorId(+event.target.value);
+            setColorIdError(false);
+          }}
         >
           <option value="0" disabled>Choose a color</option>
 

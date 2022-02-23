@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 interface Color {
@@ -37,12 +37,13 @@ const goodsFromServer: GoodWithoutColor[] = [
 ];
 
 const getColorById = (colorId: number) => {
-  return colors.find(color => color.id === colorId);
+  return colors.find(color => color.id === colorId)
+    || null;
 };
 
 const goodsWithColors: Good[] = goodsFromServer.map(good => ({
   ...good,
-  color: getColorById(good.colorId) || null,
+  color: getColorById(good.colorId),
 }));
 
 const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
@@ -59,10 +60,54 @@ const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
 );
 
 const App: React.FC = () => {
+  const [newGoodName, setNewGoodName] = useState('');
+  const [selectedColorId, setSelectedColorId] = useState(0);
+  const [goods, setGoods] = useState(goodsWithColors);
+
+  const onFormSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const newGood: Good = {
+      id: Date.now(),
+      name: newGoodName,
+      colorId: selectedColorId,
+      color: getColorById(selectedColorId),
+    };
+
+    setGoods([...goods, newGood]);
+  };
+
   return (
     <div className="App">
-      <h1>Add todo form</h1>
-      <GoodsList goods={goodsWithColors} />
+      <h1>
+        Add todo form
+      </h1>
+
+      <form onSubmit={onFormSubmit}>
+        <input
+          type="text"
+          defaultValue={newGoodName}
+          placeholder="Enter a good name"
+          onChange={event => setNewGoodName(event.target.value)}
+        />
+
+        <select
+          value={selectedColorId}
+          onChange={event => setSelectedColorId(+event.target.value)}
+        >
+          <option value="0" disabled>Choose a color</option>
+
+          {colors.map(color => (
+            <option value={color.id} key={color.id}>
+              {color.name}
+            </option>
+          ))}
+        </select>
+
+        <button type="submit">Add</button>
+      </form>
+
+      <GoodsList goods={goods} />
     </div>
   );
 };

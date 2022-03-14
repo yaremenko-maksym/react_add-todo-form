@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react';
+import classNames from 'classnames';
+import React, { useState } from 'react';
 
 import './App.css';
 
@@ -24,6 +25,11 @@ const colors: Color[] = [
   { id: 3, name: 'blue' },
 ];
 
+function getColorById(colorId: number): Color | null {
+  return colors.find(color => color.id === colorId)
+    || null;
+}
+
 const goodsFromServer: GoodWithoutColor[] = [
   { id: 1, colorId: 1, name: 'Dumplings' },
   { id: 2, colorId: 2, name: 'Carrot' },
@@ -37,7 +43,10 @@ const goodsFromServer: GoodWithoutColor[] = [
   { id: 10, colorId: 1, name: 'Garlic' },
 ];
 
-const goodsWithColors: Good[] = [];
+const goodsWithColors: Good[] = goodsFromServer.map(good => ({
+  ...good,
+  color: getColorById(good.colorId),
+}));
 
 const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
   <ul>
@@ -53,31 +62,82 @@ const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
 );
 
 const App: React.FC = () => {
+  const [goods, setGoods] = useState<Good[]>(goodsWithColors);
+
+  const [goodName, setGoodName] = useState('');
+  const [hasNameError, setNameError] = useState(false);
+
+  const [colorId, setColorId] = useState(0);
+  const [hasColorIdError, setColorIdError] = useState(false);
+
+  function addGood(newGoodName: string, newColorId: number): void {
+    const newGood: Good = {
+      id: Date.now(),
+      name: newGoodName,
+      colorId: newColorId,
+      color: getColorById(newColorId),
+    };
+
+    setGoods([...goods, newGood]);
+  }
+
   return (
     <div className="App">
       <h1>
         Add todo form
-        {colors.length}
-        {goodsFromServer.length}
+        {' '}
+        {goodName}
+        {' '}
+        {colorId}
       </h1>
 
-      <form>
+      <form onSubmit={(event) => {
+        event.preventDefault();
+
+        setNameError(!goodName);
+        setColorIdError(!colorId);
+
+        if (colorId && goodName) {
+          addGood(goodName, colorId);
+          setColorId(0);
+          setGoodName('');
+
+          return;
+        }
+      }}>
         <input
           type="text"
           placeholder="Enter a good name"
-          className="error"
+          className={hasNameError ? 'error' : ''}
+          value={goodName}
+          onChange={(event) => {
+            setGoodName(event.target.value);
+          }}
         />
 
         <select
-          className="error"
+          className={classNames({ error: hasColorIdError })}
+          value={colorId}
+          onChange={(event) => {
+            setColorId(+event.target.value);
+          }}
         >
           <option value="0" disabled>Choose a color</option>
+
+          {colors.map(color => (
+            <option
+              key={color.id}
+              value={color.id}
+            >
+              {color.name}
+            </option>
+          ))}
         </select>
 
         <button type="submit">Add</button>
       </form>
 
-      <GoodsList goods={goodsWithColors} />
+      <GoodsList goods={goods} />
     </div>
   );
 };

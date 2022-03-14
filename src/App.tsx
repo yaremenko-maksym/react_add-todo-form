@@ -48,28 +48,19 @@ const goodsWithColors: Good[] = goodsFromServer.map(good => ({
   color: getColorById(good.colorId),
 }));
 
-const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
-  <ul>
-    {goods.map(good => (
-      <li
-        key={good.id}
-        style={{ color: good.color?.name || 'black' }}
-      >
-        {good.name}
-      </li>
-    ))}
-  </ul>
-);
-
 type GoodFormProps = {
+  good?: Good | null,
   onAdd: (newGoodName: string, newColorId: number) => void,
-}
+};
 
-const GoodForm: React.FC<GoodFormProps> = ({ onAdd }) => {
-  const [goodName, setGoodName] = useState('');
+const GoodForm: React.FC<GoodFormProps> = ({
+  good = null,
+  onAdd,
+}) => {
+  const [goodName, setGoodName] = useState(good?.name || '');
   const [hasNameError, setNameError] = useState(false);
 
-  const [colorId, setColorId] = useState(0);
+  const [colorId, setColorId] = useState(good?.colorId || 0);
   const [hasColorIdError, setColorIdError] = useState(false);
 
   return (
@@ -94,6 +85,7 @@ const GoodForm: React.FC<GoodFormProps> = ({ onAdd }) => {
         value={goodName}
         onChange={(event) => {
           setGoodName(event.target.value);
+          setNameError(false);
         }}
       />
       <select
@@ -101,6 +93,7 @@ const GoodForm: React.FC<GoodFormProps> = ({ onAdd }) => {
         value={colorId}
         onChange={(event) => {
           setColorId(+event.target.value);
+          setColorIdError(false);
         }}
       >
         <option value="0" disabled>Choose a color</option>
@@ -119,10 +112,87 @@ const GoodForm: React.FC<GoodFormProps> = ({ onAdd }) => {
   );
 };
 
+type Props = {
+  goods: Good[],
+  onDelete: (goodId: number) => void,
+  onUpdate: (goodId: number, newName: string, newColorId: number) => void,
+};
+
+const GoodsList: React.FC<Props> = ({
+  goods,
+  onDelete,
+  onUpdate,
+}) => {
+  const [selectedGoodId, setSelectedGoodId] = useState(0);
+
+  return (
+    <ul>
+      {goods.map(good => (
+        <li
+          key={good.id}
+          style={{ color: good.color?.name || 'black' }}
+        >
+          {selectedGoodId === good.id ? (
+            <GoodForm
+              good={good}
+              onAdd={(name: string, colorId: number) => {
+                onUpdate(good.id, name, colorId);
+                setSelectedGoodId(0);
+              }}
+            />
+          ) : (
+            <>
+              {good.name}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedGoodId(good.id);
+                }}
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete(good.id);
+                }}
+              >
+                x
+              </button>
+            </>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
 const App: React.FC = () => {
   const [goods, setGoods] = useState<Good[]>(goodsWithColors);
 
-  function addGood(newGoodName: string, newColorId: number): void {
+  const updateGood = (
+    goodId: number,
+    newName: string,
+    newColorId: number,
+  ) => {
+    const index = goods.findIndex(good => good.id === goodId);
+    const newGood: Good = {
+      ...goods[index],
+      name: newName,
+      colorId: newColorId,
+      color: getColorById(newColorId),
+    };
+
+    const newGoods = [...goods];
+
+    newGoods[index] = newGood;
+
+    setGoods(newGoods);
+  };
+
+  const addGood = (newGoodName: string, newColorId: number) => {
     const newGood: Good = {
       id: Date.now(),
       name: newGoodName,
@@ -131,14 +201,24 @@ const App: React.FC = () => {
     };
 
     setGoods([...goods, newGood]);
-  }
+  };
+
+  const deleteGood = (goodId: number) => {
+    setGoods(
+      goods.filter(good => good.id !== goodId),
+    );
+  };
 
   return (
     <div className="App">
       <h1>Add todo form</h1>
 
       <GoodForm onAdd={addGood} />
-      <GoodsList goods={goods} />
+      <GoodsList
+        goods={goods}
+        onDelete={deleteGood}
+        onUpdate={updateGood}
+      />
     </div>
   );
 };

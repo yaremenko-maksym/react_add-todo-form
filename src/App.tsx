@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from 'react';
-import classnames from 'classnames';
+import React from 'react';
 
 import './App.css';
 
@@ -38,15 +37,7 @@ const goodsFromServer: GoodWithoutColor[] = [
   { id: 10, colorId: 1, name: 'Garlic' },
 ];
 
-const getColorById = (colorId: number) => {
-  return colors.find(color => color.id === colorId)
-    || null;
-};
-
-const goodsWithColors: Good[] = goodsFromServer.map(good => ({
-  ...good,
-  color: getColorById(good.colorId),
-}));
+const goodsWithColors: Good[] = [];
 
 const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
   <ul>
@@ -62,77 +53,31 @@ const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
 );
 
 const App: React.FC = () => {
-  const [newGoodName, setNewGoodName] = useState('');
-  const [hasNameError, setNameError] = useState(false);
-
-  const [selectedColorId, setSelectedColorId] = useState(0);
-  const [hasColorIdError, setColorIdError] = useState(false);
-
-  const [goods, setGoods] = useState(goodsWithColors);
-
-  const addGood = (name: string, colorId: number) => {
-    const newGood: Good = {
-      id: Date.now(),
-      name,
-      colorId,
-      color: getColorById(colorId),
-    };
-
-    setGoods(currentGoods => [...currentGoods, newGood]);
-  };
-
-  const onFormSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-
-    setNameError(!newGoodName);
-    setColorIdError(!selectedColorId);
-
-    if (newGoodName && selectedColorId) {
-      addGood(newGoodName, selectedColorId);
-      setNewGoodName('');
-      setSelectedColorId(0);
-    }
-  };
-
   return (
     <div className="App">
       <h1>
         Add todo form
+        {colors.length}
+        {goodsFromServer.length}
       </h1>
 
-      <form onSubmit={onFormSubmit}>
+      <form>
         <input
           type="text"
           placeholder="Enter a good name"
-          className={hasNameError ? 'error' : ''}
-          value={newGoodName}
-          onChange={(event) => {
-            setNewGoodName(event.target.value);
-            setNameError(false);
-          }}
+          className="error"
         />
 
         <select
-          className={classnames({ error: hasColorIdError })}
-          value={selectedColorId}
-          onChange={(event) => {
-            setSelectedColorId(+event.target.value);
-            setColorIdError(false);
-          }}
+          className="error"
         >
           <option value="0" disabled>Choose a color</option>
-
-          {colors.map(color => (
-            <option value={color.id} key={color.id}>
-              {color.name}
-            </option>
-          ))}
         </select>
 
         <button type="submit">Add</button>
       </form>
 
-      <GoodsList goods={goods} />
+      <GoodsList goods={goodsWithColors} />
     </div>
   );
 };

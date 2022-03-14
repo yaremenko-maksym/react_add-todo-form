@@ -61,14 +61,66 @@ const GoodsList: React.FC<{ goods: Good[] }> = ({ goods }) => (
   </ul>
 );
 
-const App: React.FC = () => {
-  const [goods, setGoods] = useState<Good[]>(goodsWithColors);
+type GoodFormProps = {
+  onAdd: (newGoodName: string, newColorId: number) => void,
+}
 
+const GoodForm: React.FC<GoodFormProps> = ({ onAdd }) => {
   const [goodName, setGoodName] = useState('');
   const [hasNameError, setNameError] = useState(false);
 
   const [colorId, setColorId] = useState(0);
   const [hasColorIdError, setColorIdError] = useState(false);
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        setNameError(!goodName);
+        setColorIdError(!colorId);
+
+        if (colorId && goodName) {
+          onAdd(goodName, colorId);
+          setColorId(0);
+          setGoodName('');
+        }
+      }}
+    >
+      <input
+        type="text"
+        placeholder="Enter a good name"
+        className={hasNameError ? 'error' : ''}
+        value={goodName}
+        onChange={(event) => {
+          setGoodName(event.target.value);
+        }}
+      />
+      <select
+        className={classNames({ error: hasColorIdError })}
+        value={colorId}
+        onChange={(event) => {
+          setColorId(+event.target.value);
+        }}
+      >
+        <option value="0" disabled>Choose a color</option>
+
+        {colors.map(color => (
+          <option
+            key={color.id}
+            value={color.id}
+          >
+            {color.name}
+          </option>
+        ))}
+      </select>
+      <button type="submit">Add</button>
+    </form>
+  );
+};
+
+const App: React.FC = () => {
+  const [goods, setGoods] = useState<Good[]>(goodsWithColors);
 
   function addGood(newGoodName: string, newColorId: number): void {
     const newGood: Good = {
@@ -83,60 +135,9 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <h1>
-        Add todo form
-        {' '}
-        {goodName}
-        {' '}
-        {colorId}
-      </h1>
+      <h1>Add todo form</h1>
 
-      <form onSubmit={(event) => {
-        event.preventDefault();
-
-        setNameError(!goodName);
-        setColorIdError(!colorId);
-
-        if (colorId && goodName) {
-          addGood(goodName, colorId);
-          setColorId(0);
-          setGoodName('');
-
-          return;
-        }
-      }}>
-        <input
-          type="text"
-          placeholder="Enter a good name"
-          className={hasNameError ? 'error' : ''}
-          value={goodName}
-          onChange={(event) => {
-            setGoodName(event.target.value);
-          }}
-        />
-
-        <select
-          className={classNames({ error: hasColorIdError })}
-          value={colorId}
-          onChange={(event) => {
-            setColorId(+event.target.value);
-          }}
-        >
-          <option value="0" disabled>Choose a color</option>
-
-          {colors.map(color => (
-            <option
-              key={color.id}
-              value={color.id}
-            >
-              {color.name}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit">Add</button>
-      </form>
-
+      <GoodForm onAdd={addGood} />
       <GoodsList goods={goods} />
     </div>
   );

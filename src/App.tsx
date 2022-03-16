@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from 'react';
+/* eslint-disable no-console */
+import React, { useCallback, useState } from 'react';
 
 import './App.css';
 import { GoodForm } from './GoodForm';
@@ -23,8 +23,28 @@ const goodsWithColors: Good[] = goodsFromServer.map(good => ({
 
 const App: React.FC = () => {
   const [goods, setGoods] = useState<Good[]>(goodsWithColors);
+  const [count, setCount] = useState(0);
 
-  const updateGood = (
+  console.log(goods.length);
+
+  const addGood = (newGoodName: string, newColorId: number) => {
+    const newGood: Good = {
+      id: Date.now(),
+      name: newGoodName,
+      colorId: newColorId,
+      color: getColorById(newColorId),
+    };
+
+    setGoods([...goods, newGood]);
+  };
+
+  const deleteGood = useCallback((goodId: number) => {
+    setGoods(
+      goods.filter(good => good.id !== goodId),
+    );
+  }, [goods]);
+
+  const updateGood = useCallback((
     goodId: number,
     newName: string,
     newColorId: number,
@@ -42,28 +62,18 @@ const App: React.FC = () => {
     newGoods[index] = newGood;
 
     setGoods(newGoods);
-  };
-
-  const addGood = (newGoodName: string, newColorId: number) => {
-    const newGood: Good = {
-      id: Date.now(),
-      name: newGoodName,
-      colorId: newColorId,
-      color: getColorById(newColorId),
-    };
-
-    setGoods([...goods, newGood]);
-  };
-
-  const deleteGood = (goodId: number) => {
-    setGoods(
-      goods.filter(good => good.id !== goodId),
-    );
-  };
+  }, [goods]);
 
   return (
     <div className="App">
-      <h1>Add Good form</h1>
+      <button
+        type="button"
+        onClick={() => {
+          setCount(count + 1);
+        }}
+      >
+        {count}
+      </button>
 
       <GoodForm onAdd={addGood} />
       <GoodsList

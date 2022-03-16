@@ -5,6 +5,7 @@ import { colors } from './api/colors';
 import { Good } from './types/Good';
 
 type Props = {
+  // eslint-disable-next-line react/require-default-props
   good?: Good | null,
   onAdd: (newGoodName: string, newColorId: number) => void,
 };

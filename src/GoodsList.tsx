@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { useState } from 'react';
 
 import { GoodForm } from './GoodForm';
@@ -9,51 +10,55 @@ export type Props = {
   onUpdate: (goodId: number, newName: string, newColorId: number) => void,
 };
 
-export const GoodsList: React.FC<Props> = ({
-  goods, onDelete, onUpdate,
-}) => {
-  const [selectedGoodId, setSelectedGoodId] = useState(0);
+export const GoodsList: React.FC<Props> = React.memo(
+  ({
+    goods, onDelete, onUpdate,
+  }) => {
+    const [selectedGoodId, setSelectedGoodId] = useState(0);
 
-  return (
-    <ul>
-      {goods.map(good => (
-        <li
-          key={good.id}
-          style={{ color: good.color?.name || 'black' }}
-        >
-          {selectedGoodId === good.id ? (
-            <GoodForm
-              good={good}
-              onAdd={(name: string, colorId: number) => {
-                onUpdate(good.id, name, colorId);
-                setSelectedGoodId(0);
-              }}
-            />
-          ) : (
-            <>
-              {good.name}
+    console.log('Render GoodsList');
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedGoodId(good.id);
+    return (
+      <ul>
+        {goods.map(good => (
+          <li
+            key={good.id}
+            style={{ color: good.color?.name || 'black' }}
+          >
+            {selectedGoodId === good.id ? (
+              <GoodForm
+                good={good}
+                onAdd={(name: string, colorId: number) => {
+                  onUpdate(good.id, name, colorId);
+                  setSelectedGoodId(0);
                 }}
-              >
-                Edit
-              </button>
+              />
+            ) : (
+              <>
+                {good.name}
 
-              <button
-                type="button"
-                onClick={() => {
-                  onDelete(good.id);
-                }}
-              >
-                x
-              </button>
-            </>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
-};
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedGoodId(good.id);
+                  }}
+                >
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDelete(good.id);
+                  }}
+                >
+                  x
+                </button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+  },
+);

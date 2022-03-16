@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import './App.css';
 import { GoodForm } from './GoodForm';
@@ -21,13 +21,30 @@ const goodsWithColors: Good[] = goodsFromServer.map(good => ({
   color: getColorById(good.colorId),
 }));
 
+type Callback = (query: string) => void;
+function debounce(f: Callback, delay: number): Callback {
+  let timerId: NodeJS.Timeout;
+
+  return (query: string) => {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      f(query);
+    }, delay);
+  };
+}
+
 const App: React.FC = () => {
   const [goods, setGoods] = useState<Good[]>(goodsWithColors);
   const [count, setCount] = useState(0);
+  const [query, setQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
 
-  console.log(goods.length);
+  const applyQuery = useCallback(
+    debounce(setAppliedQuery, 1000),
+    [],
+  );
 
-  const addGood = (newGoodName: string, newColorId: number) => {
+  const addGood = useCallback((newGoodName: string, newColorId: number) => {
     const newGood: Good = {
       id: Date.now(),
       name: newGoodName,
@@ -36,7 +53,7 @@ const App: React.FC = () => {
     };
 
     setGoods([...goods, newGood]);
-  };
+  }, [goods]);
 
   const deleteGood = useCallback((goodId: number) => {
     setGoods(
@@ -64,20 +81,34 @@ const App: React.FC = () => {
     setGoods(newGoods);
   }, [goods]);
 
+  const lowerQuery = appliedQuery.toLowerCase();
+  const visibleGoods: Good[] = useMemo(() => {
+    return goods.filter(
+      good => good.name.toLowerCase().includes(lowerQuery),
+    );
+  }, [goods, lowerQuery]);
+
   return (
     <div className="App">
-      <button
-        type="button"
-        onClick={() => {
-          setCount(count + 1);
-        }}
-      >
+      <button type="button" onClick={() => setCount(count + 1)}>
         {count}
       </button>
 
       <GoodForm onAdd={addGood} />
+
+      <input
+        type="text"
+        value={query}
+        onChange={event => {
+          const { value } = event.target;
+
+          setQuery(value);
+          applyQuery(value);
+        }}
+      />
+
       <GoodsList
-        goods={goods}
+        goods={visibleGoods}
         onDelete={deleteGood}
         onUpdate={updateGood}
       />

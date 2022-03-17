@@ -28,10 +28,31 @@ export const GoodsContext = React.createContext<{
   updateGood(goodId: number, newName: string, newColorId: number) {},
 });
 
-type Action = {
-  type: string,
-  payload?: any,
+type AddGoodAction = {
+  type: 'addGood',
+  payload: {
+    goodName: string,
+    colorId: number,
+  }
 };
+
+type DeleteGoodAction = {
+  type: 'deleteGood',
+  payload: {
+    goodId: number,
+  }
+}
+
+type UpdateGoodAction = {
+  type: 'updateGood',
+  payload: {
+    goodId: number,
+    goodName: string,
+    colorId: number,
+  }
+}
+
+type Action = AddGoodAction | DeleteGoodAction | UpdateGoodAction;
 
 const initialState = {
   goods: goodsWithColors,
@@ -52,11 +73,15 @@ function reducer(state = initialState, action: Action) {
         goods: [...state.goods, newGood],
       };
 
-    case 'deleteGood':
+    case 'deleteGood': {
+      const { goodId } = action.payload;
+
       return {
         ...state,
-        goods: state.goods.filter(good => good.id !== action.payload.goodId)
+        goods: state.goods.filter(good => good.id !== goodId)
       }
+    }
+
 
     case 'updateGood': {
       const index = state.goods.findIndex(good => good.id === action.payload.goodId);

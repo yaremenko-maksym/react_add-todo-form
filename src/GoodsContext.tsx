@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useReducer } from 'react';
 
 import { Color } from './types/Color';
 import { Good } from './types/Good';
@@ -28,48 +28,97 @@ export const GoodsContext = React.createContext<{
   updateGood(goodId: number, newName: string, newColorId: number) {},
 });
 
+type Action = {
+  type: string,
+  payload?: any,
+};
+
+const initialState = {
+  goods: goodsWithColors,
+};
+
+function reducer(state = initialState, action: Action) {
+  switch (action.type) {
+    case 'addGood':
+      const newGood: Good = {
+        id: Date.now(),
+        name: action.payload.goodName,
+        colorId: action.payload.colorId,
+        color: getColorById(action.payload.colorId),
+      };
+
+      return {
+        ...state,
+        goods: [...state.goods, newGood],
+      };
+
+    case 'deleteGood':
+      return {
+        ...state,
+        goods: state.goods.filter(good => good.id !== action.payload.goodId)
+      }
+
+    case 'updateGood': {
+      const index = state.goods.findIndex(good => good.id === action.payload.goodId);
+      const newGood: Good = {
+        ...state.goods[index],
+        name: action.payload.goodName,
+        colorId: action.payload.colorId,
+        color: getColorById(action.payload.colorId),
+      };
+
+      const newGoods = [...state.goods];
+
+      newGoods[index] = newGood;
+
+      return {
+        ...state,
+        goods: newGoods,
+      };
+    }
+
+    default:
+      return state;
+  }
+}
+
 export const GoodsContextProvider: React.FC = ({ children }) => {
-  const [goods, setGoods] = useState<Good[]>(goodsWithColors);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const addGood = useCallback((newGoodName: string, newColorId: number) => {
-    const newGood: Good = {
-      id: Date.now(),
-      name: newGoodName,
-      colorId: newColorId,
-      color: getColorById(newColorId),
-    };
-
-    setGoods([...goods, newGood]);
-  }, [goods]);
+    dispatch({
+      type: 'addGood',
+      payload: {
+        goodName: newGoodName,
+        colorId: newColorId,
+      }
+    });
+  }, []);
 
   const deleteGood = useCallback((goodId: number) => {
-    setGoods(
-      goods.filter(good => good.id !== goodId),
-    );
-  }, [goods]);
+    dispatch({
+      type: 'deleteGood',
+      payload: { goodId },
+    });
+  }, []);
 
   const updateGood = useCallback((
     goodId: number,
     newName: string,
     newColorId: number,
   ) => {
-    const index = goods.findIndex(good => good.id === goodId);
-    const newGood: Good = {
-      ...goods[index],
-      name: newName,
-      colorId: newColorId,
-      color: getColorById(newColorId),
-    };
-
-    const newGoods = [...goods];
-
-    newGoods[index] = newGood;
-
-    setGoods(newGoods);
-  }, [goods]);
+    dispatch({
+      type: 'updateGood',
+      payload: {
+        goodId,
+        goodName: newName,
+        colorId: newColorId,
+      },
+    })
+  }, []);
 
   const contextValue = {
-    goods,
+    goods: state.goods,
     addGood,
     deleteGood,
     updateGood,

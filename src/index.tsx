@@ -5,6 +5,7 @@ import { GoodsContextProvider } from './GoodsContext';
 ReactDOM.render(
   <GoodsContextProvider>
     <App />
-  </GoodsContextProvider>,
+  </GoodsContextProvider>
+  ,
   document.getElementById('root'),
 );

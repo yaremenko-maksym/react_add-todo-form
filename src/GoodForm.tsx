@@ -69,7 +69,10 @@ export const GoodForm: React.FC<Props> = React.memo(
             </option>
           ))}
         </select>
-        <button type="submit">Add</button>
+
+        <button type="submit">
+          {good ? 'Save' : 'Add'}
+        </button>
       </form>
     );
   },

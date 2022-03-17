@@ -26,13 +26,23 @@ export const GoodsList: React.FC<Props> = React.memo(
             style={{ color: good.color?.name || 'black' }}
           >
             {selectedGoodId === good.id ? (
-              <GoodForm
-                good={good}
-                onAdd={(name: string, colorId: number) => {
-                  onUpdate(good.id, name, colorId);
-                  setSelectedGoodId(0);
-                }}
-              />
+              <>
+                <GoodForm
+                  good={good}
+                  onAdd={(name: string, colorId: number) => {
+                    onUpdate(good.id, name, colorId);
+                    setSelectedGoodId(0);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedGoodId(0);
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
             ) : (
               <>
                 {good.name}
